@@ -1399,7 +1399,7 @@ const Game = {
             setTimeout(() => {
                 splash.style.display = 'none';
                 this.showIntro();
-                this.startBackgroundMusic();
+                this.playEnding();
             }, 1000);
         }, 1500);
     },
@@ -1451,7 +1451,7 @@ const Game = {
             btn.textContent = '🔇';
             this.stopAllMusic();
         }
-    }
+    },
 
     // ============================================
     // ЛОКАЛИЗАЦИЯ
