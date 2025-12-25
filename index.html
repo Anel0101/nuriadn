@@ -1407,43 +1407,51 @@ const Game = {
     // ============================================
     // ЗВУК
     // ============================================
-    
+
+    stopAllMusic() {
+        const tension = document.getElementById('background-tension-audio');
+        const ending = document.getElementById('ending-music-audio');
+        if (tension) tension.pause();
+        if (ending) ending.pause();
+    },
+
+    playTension() {
+        if (!soundEnabled) return;
+        this.stopAllMusic();
+        const tension = document.getElementById('background-tension-audio');
+        if (tension) {
+            tension.volume = 0.4;
+            tension.play().catch(e => {});
+        }
+    },
+
+    playEnding() {
+        if (!soundEnabled) return;
+        this.stopAllMusic();
+        const ending = document.getElementById('ending-music-audio');
+        if (ending) {
+            ending.volume = 0.5;
+            ending.play().catch(e => {});
+        }
+    },
+
     toggleSound() {
         soundEnabled = !soundEnabled;
         const btn = document.getElementById('sound-toggle');
         
         if (soundEnabled) {
             btn.textContent = '🔊';
-            // Если звук включили, запускаем музыку в зависимости от этапа
-            if (state.dilemmaIndex >= 2 && state.dilemmaIndex <= 11) {
-                this.playTension();
+            // Если идеология уже выбрана и мы не дошли до конца (10 дилемм)
+            if (state.ideology && state.dilemmaIndex < 10) {
+                this.playTension(); // Играем тиканье
             } else {
-                this.playEnding();
+                this.playEnding();  // Иначе (в меню или в финале) - музыку
             }
         } else {
             btn.textContent = '🔇';
             this.stopAllMusic();
         }
-    },
-
-    stopAllMusic() {
-        backgroundTension.pause();
-        endingMusic.pause();
-    },
-
-    playTension() {
-        if (!soundEnabled) return;
-        endingMusic.pause();
-        backgroundTension.volume = 0.4;
-        backgroundTension.play().catch(e => console.warn("Audio blocked"));
-    },
-
-    playEnding() {
-        if (!soundEnabled) return;
-        backgroundTension.pause();
-        endingMusic.volume = 0.5;
-        endingMusic.play().catch(e => console.warn("Audio blocked"));
-    },
+    }
 
     // ============================================
     // ЛОКАЛИЗАЦИЯ
@@ -2273,6 +2281,7 @@ const Game = {
 
     // Сброс игры
     reset() {
+        // 1. Полностью сбрасываем объект состояния
         state = {
             mayorName: null,
             mayorAge: null,
@@ -2290,15 +2299,32 @@ const Game = {
             startTime: Date.now()
         };
 
+        // 2. Очищаем текстовые поля
         document.getElementById('mayor-name').value = 'Колонист 101';
         document.getElementById('mayor-age').value = '35';
         document.getElementById('mayor-gender').value = 'Не указан';
-        document.getElementById('mayor-info').textContent = '';
-        document.getElementById('resource-warning').classList.add('hidden');
+        if (document.getElementById('mayor-info')) {
+            document.getElementById('mayor-info').textContent = '';
+        }
 
+        // 3. УПРАВЛЕНИЕ ЭКРАНАМИ (Самое важное)
+        const intro = document.getElementById('intro-screen');
+        const game = document.getElementById('game-container');
+
+        // Прячем игру
+        game.classList.add('hidden');
+        
+        // Показываем интро и убираем блокировку кликов
+        intro.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+        intro.style.opacity = '1'; 
+
+        // 4. Сбрасываем звук
+        this.stopAllMusic(); // Останавливаем всё
+        this.playEnding();   // Запускаем спокойную тему для меню
+
+        // 5. Обновляем полоски и цифры
         this.updateStats();
-        this.showIntro();
-        this.playEnding();
+        this.showIntro(); // Перерисовываем первый шаг интро
     }
 };
 
